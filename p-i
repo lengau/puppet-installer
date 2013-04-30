@@ -8,6 +8,14 @@
 #	This script installs the latest version of Puppet from the repositories on a Debian-based system.
 #	REQUIRES: Repository with package "puppet" in it, including correct dependencies.
 
+# Get the directory where the p-i script is installed.
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 echo "Updating APT repositories..."
 sudo apt-get update > /dev/null
@@ -16,7 +24,7 @@ echo "Installing Puppet agent..."
 sudo apt-get install puppet
 
 echo "Installing base configuration..."
-sudo cp puppet.conf.base /etc/puppet/puppet.conf	# The base configuration included here is the default one from the Ubuntu repositories, plus some modification to make it agent-specific.
+sudo cp $DIR/puppet.conf.base /etc/puppet/puppet.conf	# The base configuration included here is the default one from the Ubuntu repositories, plus some modification to make it agent-specific.
 
 # You can use ./p-i $MASTER_NAME to install puppet with a specific master without interaction here.
 if [ "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ$1" != "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" ]; then
@@ -26,7 +34,7 @@ else
 	read MASTER_NAME
 fi
 echo $MASTER_NAME|sudo tee -a /etc/puppet/puppet.conf
-sudo cp puppet-defaults /etc/default/puppet
+sudo cp $DIR/puppet-defaults /etc/default/puppet
 
 echo "Starting Puppet agent..."
 sudo puppet agent --test >/dev/null
